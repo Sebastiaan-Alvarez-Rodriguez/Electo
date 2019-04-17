@@ -2,8 +2,6 @@
 import sys
 import os
 
-import lib.picker as picker
-
 # Checks python version and exits if it is too low
 # Must be specified before any lib imports (using v3.3) are done
 def check_version():
@@ -11,6 +9,9 @@ def check_version():
         print('I am sorry, but this script is for python3.3+ only!')
         exit(1)
 check_version()
+
+import lib.picker as picker
+
 
 # Get absolute path to this script
 def get_loc():
@@ -33,7 +34,7 @@ def listonlydir(path, full_paths=False):
         return [os.path.join(path, name) for name in contents if os.path.isdir(os.path.join(path, name))]
 
 def get_all_subdirs(directory):
-    return_list= []
+    return_list= [directory]
     tmp_list = listonlydir(directory, full_paths=True)
     for item in tmp_list:
         return_list.extend(get_all_subdirs(item))
@@ -43,21 +44,21 @@ def ask_subdirs(directory):
     choice_list = listonlydir(directory, full_paths=True)
     optionsdict = make_optionsdict(choice_list)
     if len(optionsdict) == 0:
-        print('No folders in "'+directory+'"')
+        print('No folders in "{0}"'.format(directory))
         return []
     while True:
         for item in optionsdict:
-            print('\t\t'+'['+str(item)+'] - '+os.path.basename(optionsdict[item]))
+            print('\t\t[{0}] - {1}'.format(str(item),os.path.basename(optionsdict[item])))
         print('\t[E]verything')
         choice = input('Please make a choice (or multiple, comma-separated): ').upper()
         chosenarray = []
         words = choice.split(',')
         for word in words:
             if word in ('E', 'EVERYTHING'):
-                tmp_list = choice_list
-                for item in tmp_list:
-                    choice_list.extend(get_all_subdirs(item))
-                return choice_list
+                return_list = []
+                for item in choice_list:
+                    return_list.extend(get_all_subdirs(item))
+                return return_list
             elif word.isdigit() and int(word) in optionsdict:
                 chosenarray.append(optionsdict[int(word)])
             else:
@@ -65,7 +66,7 @@ def ask_subdirs(directory):
         if len(chosenarray) > 0:
             tmparray = []
             for option in chosenarray:
-                print('Reviewing "'+option+'"')
+                print('Reviewing "{0}"'.format(option))
                 tmparray += ask_subdirs(option)
             return tmparray
 
@@ -93,12 +94,12 @@ def ask_directory(question, must_exist=True):
         choice = os.path.normpath(choice)
         if must_exist:
             if not os.path.isdir(choice):
-                print('Error: no such directory - "'+choice+'"')
+                print('Error: no such directory - "{0}"'.format(choice))
             else:
                 return choice
         else:
             if os.path.isdir(choice):
-                print('"'+choice+'" already exists')
+                print('"{0}" already exists'.format(choice))
                 if standard_yesno('continue?'):
                     return choice
             else:
@@ -114,9 +115,9 @@ def ask_path(question):
         choice = choice if choice[0]=='/' else os.environ['PWD']+'/'+choice
         choice = os.path.normpath(choice)
         if not os.path.isdir(os.path.dirname(choice)):
-            print('Error: no such directory - "'+os.path.dirname(choice)+'"')
+            print('Error: no such directory - "{0}"'.format(os.path.dirname(choice)))
         elif os.path.isfile(choice):
-            if standard_yesno('"'+choice+'" exists, override?'):
+            if standard_yesno('"{0}" exists, override?'.format(choice)):
                 return choice
         else:
             return choice
@@ -133,16 +134,6 @@ def ask_filetype():
         else:
             return choice
 
-# Ask user for size of sample
-def ask_samplesize():
-    while True:
-        print('How large do you want your sample?')
-        choice = input('')
-        if len(choice) == 0 or not choice.isdigit():
-            print('Please provide a number')
-        else:
-            return int(choice)
-
 # Main function of this simple tool
 def main():
     _path = get_loc()
@@ -153,10 +144,13 @@ def main():
     directory = ask_directory('Provide a path to your dataset')
     if len(listonlydir(directory)) != 0:
         subdirs = ask_subdirs(directory)
+        print('Got {0} directories'.format(str(len(subdirs))))
     else:
         subdirs = [directory]
     pick = picker.Picker(subdirs, filetype)
-    samplesize = ask_samplesize()
+    if pick.listsize == 0:
+        return
+    samplesize = pick.ask_samplesize()
     sample_array = pick.pick(samplesize)
     while True:
         print('What do you want with your output?')

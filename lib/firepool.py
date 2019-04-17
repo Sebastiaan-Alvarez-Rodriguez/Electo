@@ -1,4 +1,3 @@
-import threading
 import multiprocessing
 
 class Firepool(object):
@@ -10,5 +9,5 @@ class Firepool(object):
         
     # Execute multiprocess stage
     def fire(self, func, argarray):
-        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        with multiprocessing.Pool(processes=8) as pool:
             pool.starmap(func, argarray)

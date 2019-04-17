@@ -40,13 +40,26 @@ class Picker(object):
     def makelist(self):
         pool = firepool.Firepool()
         itemlist = multiprocessing.Manager().list()
-        
 
         args = self.arg_generator(itemlist)
 
+        print('Creating list of all specified "{0}"\'s'.format(self.filetype))
         pool.fire(self.parallel_makelist, args)
-        print('Found '+str(len(itemlist))+' "'+self.filetype+'"\'s')
         self.itemlist = itemlist
+        self.listsize = len(itemlist)
+        print('Found {0} "{1}"\'s'.format(self.listsize, self.filetype))
+
+    # Ask user for size of sample
+    def ask_samplesize(self):
+        while True:
+            print('How large do you want your sample (max {0})?'.format(self.listsize))
+            choice = input('')
+            if len(choice) == 0 or not choice.isdigit():
+                print('Please provide a number')
+            elif int(choice) > self.listsize:
+                print('Specify a number less than {0}'.format(self.listsize))
+            else:
+                return int(choice)
 
     # Pick items at random out of the list
     def pick(self, samplesize):
