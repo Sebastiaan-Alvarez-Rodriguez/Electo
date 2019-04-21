@@ -58,6 +58,8 @@ class Picker(object):
                 print('Please provide a number')
             elif int(choice) > self.listsize:
                 print('Specify a number less than {0}'.format(self.listsize))
+            elif int(choice) < 1:
+                print('Specify a number greater than 0')
             else:
                 return int(choice)
 

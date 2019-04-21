@@ -44,8 +44,8 @@ def ask_subdirs(directory):
     choice_list = listonlydir(directory, full_paths=True)
     optionsdict = make_optionsdict(choice_list)
     if len(optionsdict) == 0:
-        print('No folders in "{0}"'.format(directory))
-        return []
+        return [directory]
+
     while True:
         for item in optionsdict:
             print('\t\t[{0}] - {1}'.format(str(item),os.path.basename(optionsdict[item])))
